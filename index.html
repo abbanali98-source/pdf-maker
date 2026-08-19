@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Universal PDF Maker</title>
+
+
+    <!-- PDF Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+
+    <!-- Unicode Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        body {
+
+            font-family:
+                "Noto Sans",
+                "Noto Sans Arabic",
+                Arial,
+                sans-serif;
+
+            min-height: 100vh;
+
+            background:
+                radial-gradient(
+                    circle at 10% 10%,
+                    #6366f1,
+                    transparent 30%
+                ),
+
+                radial-gradient(
+                    circle at 90% 90%,
+                    #06b6d4,
+                    transparent 30%
+                ),
+
+                #07111f;
+
+            color: white;
+        }
+
+
+        /* HEADER */
+
+        header {
+
+            text-align: center;
+
+            padding: 45px 20px 30px;
+        }
+
+
+        .logo {
+
+            display: inline-block;
+
+            padding: 12px 20px;
+
+            border-radius: 15px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #6366f1,
+                    #06b6d4
+                );
+
+            font-size: 20px;
+
+            font-weight: bold;
+
+            margin-bottom: 18px;
+        }
+
+
+        header h1 {
+
+            font-size: 42px;
+
+            margin-bottom: 12px;
+        }
+
+
+        header h1 span {
+
+            color: #22d3ee;
+        }
+
+
+        header p {
+
+            color: #cbd5e1;
+
+            font-size: 16px;
+        }
+
+
+        /* MAIN */
+
+        .container {
+
+            width: 92%;
+
+            max-width: 1000px;
+
+            margin: auto;
+
+            padding-bottom: 50px;
+        }
+
+
+        .editor {
+
+            background:
+                rgba(255,255,255,0.08);
+
+            border:
+                1px solid
+                rgba(255,255,255,0.15);
+
+            backdrop-filter: blur(20px);
+
+            padding: 25px;
+
+            border-radius: 24px;
+
+            box-shadow:
+                0 25px 70px
+                rgba(0,0,0,0.35);
+        }
+
+
+        label {
+
+            display: block;
+
+            margin-bottom: 8px;
+
+            font-weight: bold;
+
+            color: #e2e8f0;
+        }
+
+
+        input,
+        textarea {
+
+            width: 100%;
+
+            background: #0f172a;
+
+            color: white;
+
+            border:
+                1px solid
+                #334155;
+
+            border-radius: 12px;
+
+            padding: 14px;
+
+            font-size: 17px;
+
+            outline: none;
+
+            font-family:
+                "Noto Sans",
+                "Noto Sans Arabic",
+                Arial,
+                sans-serif;
+        }
+
+
+        input {
+
+            margin-bottom: 22px;
+        }
+
+
+        input:focus,
+        textarea:focus {
+
+            border-color: #6366f1;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(99,102,241,0.15);
+        }
+
+
+        textarea {
+
+            height: 400px;
+
+            resize: vertical;
+
+            line-height: 1.8;
+        }
+
+
+        /* BUTTONS */
+
+        .buttons {
+
+            display: flex;
+
+            gap: 12px;
+
+            flex-wrap: wrap;
+
+            margin-top: 20px;
+        }
+
+
+        button {
+
+            border: none;
+
+            padding: 14px 24px;
+
+            border-radius: 12px;
+
+            font-size: 15px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+
+        .saveButton {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #6366f1,
+                    #06b6d4
+                );
+
+            color: white;
+
+            box-shadow:
+                0 10px 25px
+                rgba(6,182,212,0.20);
+        }
+
+
+        .clearButton {
+
+            background: #1e293b;
+
+            color: white;
+
+            border:
+                1px solid
+                #475569;
+        }
+
+
+        button:hover {
+
+            transform:
+                translateY(-2px);
+
+            opacity: 0.9;
+        }
+
+
+        /* INFO */
+
+        .info {
+
+            margin-top: 22px;
+
+            padding: 18px;
+
+            border-radius: 14px;
+
+            background:
+                rgba(99,102,241,0.12);
+
+            border:
+                1px solid
+                rgba(129,140,248,0.25);
+
+            color: #cbd5e1;
+
+            line-height: 1.7;
+        }
+
+
+        /* PDF PREVIEW */
+
+        #pdfDocument {
+
+            position: fixed;
+
+            left: -10000px;
+
+            top: 0;
+
+            width: 794px;
+
+            background: white;
+
+            color: black;
+
+            padding: 65px;
+
+            font-family:
+                "Noto Sans",
+                "Noto Sans Arabic",
+                Arial,
+                sans-serif;
+
+            line-height: 1.8;
+
+            overflow-wrap: break-word;
+
+            word-break: normal;
+        }
+
+
+        #pdfTitle {
+
+            font-size: 28px;
+
+            font-weight: 700;
+
+            text-align: center;
+
+            margin-bottom: 35px;
+
+            color: #111827;
+        }
+
+
+        #pdfText {
+
+            font-size: 17px;
+
+            white-space: pre-wrap;
+
+            overflow-wrap: break-word;
+
+            word-break: normal;
+
+            color: #111827;
+        }
+
+
+        /* FOOTER */
+
+        footer {
+
+            text-align: center;
+
+            padding: 25px;
+
+            color: #94a3b8;
+
+            font-size: 14px;
+        }
+
+
+        /* MOBILE */
+
+        @media (max-width: 600px) {
+
+            header h1 {
+
+                font-size: 30px;
+            }
+
+
+            header p {
+
+                font-size: 14px;
+            }
+
+
+            .editor {
+
+                padding: 18px;
+            }
+
+
+            button {
+
+                width: 100%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- HEADER -->
+
+    <header>
+
+        <div class="logo">
+            📄 Universal PDF Maker
+        </div>
+
+
+        <h1>
+            Create PDFs in
+            <span>Any Language</span>
+        </h1>
+
+
+        <p>
+            Write anything and save it as a professional PDF.
+        </p>
+
+    </header>
+
+
+    <!-- EDITOR -->
+
+    <main class="container">
+
+        <div class="editor">
+
+
+            <label>
+                Document Title
+            </label>
+
+
+            <input
+                type="text"
+                id="title"
+                placeholder="Enter document title..."
+            >
+
+
+            <label>
+                Your Text
+            </label>
+
+
+            <textarea
+                id="text"
+                placeholder="Write anything here...
+
+English
+اردو
+العربية
+हिन्दी
+中文
+日本語
+
+You can write in any language."
+            ></textarea>
+
+
+            <div class="buttons">
+
+
+                <button
+                    class="saveButton"
+                    onclick="savePDF()"
+                >
+                    💾 Save PDF
+                </button>
+
+
+                <button
+                    class="clearButton"
+                    onclick="clearAll()"
+                >
+                    🗑 Clear
+                </button>
+
+
+            </div>
+
+
+            <div class="info">
+
+                🌍 <strong>Any Language Support</strong>
+
+                <br>
+
+                Write applications, assignments, notes,
+                letters or any other text in English,
+                Urdu, Arabic, Hindi, Chinese, Japanese
+                and other Unicode languages.
+
+                <br><br>
+
+                💾 Click <strong>Save PDF</strong> to
+                download your document directly.
+
+            </div>
+
+
+        </div>
+
+    </main>
+
+
+    <!-- HIDDEN PDF DOCUMENT -->
+
+    <div id="pdfDocument">
+
+        <div id="pdfTitle"></div>
+
+        <div id="pdfText"></div>
+
+    </div>
+
+
+    <footer>
+
+        Universal PDF Maker © 2026
+
+    </footer>
+
+
+    <script>
+
+
+        async function savePDF() {
+
+
+            let title =
+                document
+                .getElementById("title")
+                .value
+                .trim();
+
+
+            let text =
+                document
+                .getElementById("text")
+                .value
+                .trim();
+
+
+            /* Check text */
+
+            if (text === "") {
+
+                alert(
+                    "Please write some text first."
+                );
+
+                return;
+            }
+
+
+            /* Default title */
+
+            if (title === "") {
+
+                title = "My Document";
+
+            }
+
+
+            /*
+                Put text into PDF document
+            */
+
+            let pdfTitle =
+                document.getElementById(
+                    "pdfTitle"
+                );
+
+
+            let pdfText =
+                document.getElementById(
+                    "pdfText"
+                );
+
+
+            pdfTitle.textContent =
+                title;
+
+
+            pdfText.textContent =
+                text;
+
+
+            /*
+                Automatically detect
+                text direction.
+            */
+
+            pdfText.setAttribute(
+                "dir",
+                "auto"
+            );
+
+
+            pdfTitle.setAttribute(
+                "dir",
+                "auto"
+            );
+
+
+            /*
+                Wait for fonts.
+            */
+
+            await document.fonts.ready;
+
+
+            /*
+                Small delay so the browser
+                finishes rendering Unicode.
+            */
+
+            await new Promise(
+                function(resolve) {
+
+                    setTimeout(
+                        resolve,
+                        300
+                    );
+
+                }
+            );
+
+
+            let element =
+                document.getElementById(
+                    "pdfDocument"
+                );
+
+
+            /*
+                Render the browser document
+                into a canvas.
+
+                Browser handles:
+                Urdu
+                Arabic
+                Hindi
+                Chinese
+                Emojis
+                Unicode
+                RTL
+            */
+
+            let canvas =
+                await html2canvas(
+                    element,
+                    {
+
+                        scale: 2,
+
+                        useCORS: true,
+
+                        allowTaint: true,
+
+                        backgroundColor:
+                            "#ffffff",
+
+                        logging: false
+
+                    }
+                );
+
+
+            /*
+                Create PDF
+            */
+
+            const {
+                jsPDF
+            } = window.jspdf;
+
+
+            let pdf =
+                new jsPDF(
+                    {
+                        orientation:
+                            "portrait",
+
+                        unit:
+                            "mm",
+
+                        format:
+                            "a4"
+                    }
+                );
+
+
+            /*
+                A4 size
+            */
+
+            let pageWidth = 210;
+
+            let pageHeight = 297;
+
+
+            let margin = 10;
+
+
+            let usableWidth =
+                pageWidth -
+                (margin * 2);
+
+
+            /*
+                Canvas dimensions
+            */
+
+            let canvasWidth =
+                canvas.width;
+
+
+            let canvasHeight =
+                canvas.height;
+
+
+            /*
+                Calculate PDF image height
+            */
+
+            let imageHeight =
+                (canvasHeight *
+                usableWidth) /
+                canvasWidth;
+
+
+            /*
+                Convert canvas to image
+            */
+
+            let image =
+                canvas.toDataURL(
+                    "image/jpeg",
+                    0.98
+                );
+
+
+            /*
+                If document fits on one page
+            */
+
+            if (
+                imageHeight <=
+                pageHeight - margin * 2
+            ) {
+
+
+                pdf.addImage(
+
+                    image,
+
+                    "JPEG",
+
+                    margin,
+
+                    margin,
+
+                    usableWidth,
+
+                    imageHeight
+
+                );
+
+            }
+
+
+            /*
+                Multiple PDF pages
+            */
+
+            else {
+
+
+                let remainingHeight =
+                    imageHeight;
+
+
+                let position = margin;
+
+
+                while (
+                    remainingHeight > 0
+                ) {
+
+
+                    pdf.addImage(
+
+                        image,
+
+                        "JPEG",
+
+                        margin,
+
+                        position,
+
+                        usableWidth,
+
+                        imageHeight
+
+                    );
+
+
+                    remainingHeight -=
+                        pageHeight -
+                        margin * 2;
+
+
+                    if (
+                        remainingHeight > 0
+                    ) {
+
+                        pdf.addPage();
+
+                        position =
+                            margin -
+                            (
+                                imageHeight -
+                                remainingHeight
+                            );
+
+                    }
+
+                }
+
+            }
+
+
+            /*
+                Safe filename
+            */
+
+            let fileName =
+                title
+                .replace(
+                    /[\\/:*?"<>|]/g,
+                    "_"
+                );
+
+
+            /*
+                Download PDF
+            */
+
+            pdf.save(
+                fileName +
+                ".pdf"
+            );
+
+        }
+
+
+        /*
+            Clear button
+        */
+
+        function clearAll() {
+
+            document
+            .getElementById(
+                "title"
+            )
+            .value = "";
+
+
+            document
+            .getElementById(
+                "text"
+            )
+            .value = "";
+
+        }
+
+    </script>
+
+
+</body>
+
+</html>
